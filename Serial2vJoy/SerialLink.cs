@@ -44,8 +44,8 @@ namespace FeederDemoCS
             }
 
             mSerialPort = new SerialPort(portName, 9600, Parity.None, 8, StopBits.One);
-            mSerialPort.ReadTimeout = 100;
-            mSerialPort.WriteTimeout = 100;
+            mSerialPort.ReadTimeout = 250;
+            mSerialPort.WriteTimeout = 250;
 
             mSerialPort.Open();
             
@@ -65,13 +65,17 @@ namespace FeederDemoCS
 
         public void Read()
         {
-            
+            int samplesPerSecond = 100;
+            int cycleTime = 1000 / samplesPerSecond;
+
             while (mContinue)
             {
                 try
                 {
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
 
-                    if(mSerialPort.BytesToRead > 255)
+                    if (mSerialPort.BytesToRead > 255)
                     {
                         Loger.Warn($"Serial ling overfloded by {mSerialPort.BytesToRead} bytes. Is cleaning all buffer!");
                         mSerialPort.ReadExisting();
@@ -80,6 +84,17 @@ namespace FeederDemoCS
 
                     string line = mSerialPort.ReadLine();
                     ResolveLine(line);
+                    Thread.Yield();
+
+                    sw.Stop();
+                    int sleepTime = cycleTime - (int)sw.ElapsedMilliseconds;
+                    if (sleepTime > 0) Thread.Sleep(sleepTime);
+                    else
+                    {
+                        Loger.Warn($"Getter loop sleep time {sleepTime}ms");
+                        Thread.Yield();
+                    }
+
                 }
                 catch (Exception e)
                 {
@@ -106,7 +121,35 @@ namespace FeederDemoCS
 
         private void ResolveKeyValue(string key, string value)
         {
+            if (!Int32.TryParse(key.Substring(1), out int index)){
+                Loger.Error($"Cannot convert string {key.Substring(1)} to Int32.");
+                return;
+            }
 
+            switch (key[0])
+            {
+                case 'a':
+                    if(!Byte.TryParse(value, out byte byteValue))
+                    {
+                        Loger.Error($"Cannot convert string {value} to byte.");
+                        return;
+                    }
+                    SerialStates.Axes[index] = byteValue;
+                    break;
+                case 'b':
+                    bool boolValue = false;
+
+                    if (value.Equals("1")) boolValue = true;
+                    else if (value.Equals("0")) boolValue = false;
+                    else
+                    {
+                        Loger.Error($"Cannot convert string {value} to bool.");
+                        return;
+                    }
+
+                    SerialStates.Buttons[index] = boolValue;
+                    break;
+            }
         }
 
     }

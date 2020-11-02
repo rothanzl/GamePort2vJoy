@@ -22,7 +22,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
+using System.Threading;
 
 // Don't forget to add this
 using vJoyInterfaceWrap;
@@ -68,9 +70,6 @@ namespace FeederDemoCS
                 Console.WriteLine("Cannot open port");
                 return;
             }
-
-            Console.ReadLine();
-
 
             // Get the driver attributes (Vendor ID, Product ID, Version Number)
             if (!joystick.vJoyEnabled())
@@ -144,41 +143,40 @@ namespace FeederDemoCS
             else
                 Console.WriteLine("Acquired: vJoy device number {0}.\n", id);
 
-            Console.WriteLine("\npress enter to stat feeding");
-            //Console.ReadKey(true);
-
-            int X, Y, Z, ZR, XR;
-            uint count = 0;
-            long maxval = 0;
-
-            X = 20;
-            Y = 30;
-            Z = 40;
-            XR = 60;
-            ZR = 80;
-
-            joystick.GetVJDAxisMax(id, HID_USAGES.HID_USAGE_X, ref maxval);
 
 
+            
+            joystick.GetVJDAxisMax(id, HID_USAGES.HID_USAGE_X, ref SerialStates.AxeMaxVal);
 
-            byte[] pov = new byte[4];
+            int samplesPerSecond = 250;
+            int cycleTime = 1000 / samplesPerSecond;
 
             while (true)
             {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+
                 iReport.bDevice = (byte)id;
-                iReport.AxisX = X;
-                iReport.AxisY = Y;
-                iReport.AxisZ = Z;
-                iReport.AxisZRot = ZR;
-                iReport.AxisXRot = XR;
 
-                // Set buttons one by one
-                //iReport.Buttons = (uint)(0x1 <<  (int)(count / 20));
-                iReport.Buttons =  0b1 | 0b10 | 0b1000;
+                iReport.AxisX = SerialStates.ConverAxeValue(SerialStates.Axes[0]);
+                iReport.AxisY = SerialStates.ConverAxeValue(SerialStates.Axes[1]);
+
+                iReport.AxisXRot = SerialStates.ConverAxeValue(SerialStates.Axes[2]);
+                iReport.AxisYRot = SerialStates.ConverAxeValue(SerialStates.Axes[3]);
 
 
-			        // Make 5-position POV Hat spin
-			
+
+                iReport.Buttons = 0;
+                for(int i = 0; i < SerialStates.Buttons.Length; i++)
+                {
+                    if(SerialStates.Buttons[i])
+                        iReport.Buttons = iReport.Buttons | ((uint)0b1 << i);
+                }
+
+                
+                iReport.bHats = 0xFFFFFFFF; // Neutral state
+                // Make 5-position POV Hat spin
+                /*
 			        pov[0] = (byte)(((count / 20) + 0)%4);
                     pov[1] = (byte)(((count / 20) + 1) % 4);
                     pov[2] = (byte)(((count / 20) + 2) % 4);
@@ -186,28 +184,27 @@ namespace FeederDemoCS
 
 			        iReport.bHats		= (uint)(pov[3]<<12) | (uint)(pov[2]<<8) | (uint)(pov[1]<<4) | (uint)pov[0];
 			        if ((count) > 550)
-				        iReport.bHats = 0xFFFFFFFF; // Neutral state
-		        
+				       iReport.bHats = 0xFFFFFFFF; // Neutral state
+		        */
 
-        /*** Feed the driver with the position packet - is fails then wait for input then try to re-acquire device ***/
-        if (!joystick.UpdateVJD(id, ref iReport))
-        {
-            Console.WriteLine("Feeding vJoy device number {0} failed - try to enable device then press enter\n", id);
-            Console.ReadKey(true);
-            joystick.AcquireVJD(id);
-        }
+                /*** Feed the driver with the position packet - is fails then wait for input then try to re-acquire device ***/
+                if (!joystick.UpdateVJD(id, ref iReport))
+                {
+                    Loger.Error($"Feeding vJoy device number {id} failed - wait 1s");
+                    Thread.Sleep(1000);
+                    joystick.AcquireVJD(id);
+                }
 
-        System.Threading.Thread.Sleep(20);
-        count++;
-        if (count > 640) count = 0;
+                sw.Stop();
+                int sleepTime = cycleTime - (int)sw.ElapsedMilliseconds;
+                if (sleepTime > 0) Thread.Sleep(sleepTime);
+                else
+                {
+                    Loger.Warn($"Setter loop sleep time {sleepTime}ms");
+                    Thread.Yield();
+                }
 
-        X += 150; if (X > maxval) X = 0;
-        Y += 250; if (Y > maxval) Y = 0;
-        Z += 350; if (Z > maxval) Z = 0;
-        XR += 220; if (XR > maxval) XR = 0;
-        ZR += 200; if (ZR > maxval) ZR = 0;  
-         
-      }; // While
+            }; // While
 
 
 

@@ -1,17 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace FeederDemoCS
 {
     class SerialStates
     {
 
-        public static byte AxeX = 0x0;
-        public static byte AxeY = 0x0;
+        public static byte[] Axes = { 0, 0, 0, 0 };
+        public static bool[] Buttons = { false, false, false, false };
 
-        public static byte AxeRX = 0x0;
-        public static byte AxeRY = 0x0;
+
+        public static long AxeMaxVal = 0;
+
+        public static int ConverAxeValue(byte b)
+        {
+            double perCent = ((double)b) / 255;
+            return (int) Math.Round(perCent * AxeMaxVal);
+        }
+
+
 
     }
 }
