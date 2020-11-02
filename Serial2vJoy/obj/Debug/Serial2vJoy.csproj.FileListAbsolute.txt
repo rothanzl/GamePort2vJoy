@@ -1,0 +1,9 @@
+C:\Users\micha\source\repos\GamePort2vJoy\Serial2vJoy\bin\Debug\FeederDemoCS.exe.config
+C:\Users\micha\source\repos\GamePort2vJoy\Serial2vJoy\bin\Debug\FeederDemoCS.exe
+C:\Users\micha\source\repos\GamePort2vJoy\Serial2vJoy\bin\Debug\FeederDemoCS.pdb
+C:\Users\micha\source\repos\GamePort2vJoy\Serial2vJoy\bin\Debug\vJoyInterfaceWrap.dll
+C:\Users\micha\source\repos\GamePort2vJoy\Serial2vJoy\obj\Debug\Serial2vJoy.csprojAssemblyReference.cache
+C:\Users\micha\source\repos\GamePort2vJoy\Serial2vJoy\obj\Debug\Serial2vJoy.csproj.CoreCompileInputs.cache
+C:\Users\micha\source\repos\GamePort2vJoy\Serial2vJoy\obj\Debug\Serial2vJoy.csproj.CopyComplete
+C:\Users\micha\source\repos\GamePort2vJoy\Serial2vJoy\obj\Debug\FeederDemoCS.exe
+C:\Users\micha\source\repos\GamePort2vJoy\Serial2vJoy\obj\Debug\FeederDemoCS.pdb

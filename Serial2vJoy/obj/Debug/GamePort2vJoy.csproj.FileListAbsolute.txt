@@ -1,0 +1,8 @@
+C:\Users\micha\Documents\Visual Studio 2019\Proj\GamePort2vJoy\GamePort2vJoy\bin\Debug\FeederDemoCS.exe
+C:\Users\micha\Documents\Visual Studio 2019\Proj\GamePort2vJoy\GamePort2vJoy\bin\Debug\FeederDemoCS.pdb
+C:\Users\micha\Documents\Visual Studio 2019\Proj\GamePort2vJoy\GamePort2vJoy\bin\Debug\vJoyInterfaceWrap.dll
+C:\Users\micha\Documents\Visual Studio 2019\Proj\GamePort2vJoy\GamePort2vJoy\obj\Debug\GamePort2vJoy.csproj.CoreCompileInputs.cache
+C:\Users\micha\Documents\Visual Studio 2019\Proj\GamePort2vJoy\GamePort2vJoy\obj\Debug\GamePort2vJoy.csproj.CopyComplete
+C:\Users\micha\Documents\Visual Studio 2019\Proj\GamePort2vJoy\GamePort2vJoy\obj\Debug\FeederDemoCS.exe
+C:\Users\micha\Documents\Visual Studio 2019\Proj\GamePort2vJoy\GamePort2vJoy\obj\Debug\FeederDemoCS.pdb
+C:\Users\micha\Documents\Visual Studio 2019\Proj\GamePort2vJoy\GamePort2vJoy\obj\Debug\GamePort2vJoy.csprojAssemblyReference.cache
