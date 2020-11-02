@@ -4,6 +4,7 @@ using System.Text;
 using System.IO.Ports;
 using System.Threading;
 using System.Linq;
+using System.Diagnostics;
 
 namespace FeederDemoCS
 {
@@ -61,98 +62,29 @@ namespace FeederDemoCS
             return true;
         }
 
+
         public void Read()
         {
-            byte[] oldMessageBuffer = new byte[0];
+            
             while (mContinue)
             {
                 try
                 {
-                    int size = mSerialPort.BytesToRead;
-                    if (size == 0) continue;
 
-                    byte[] bytes = new byte[size];
-                    mSerialPort.Read(bytes, 0, size);
-
-                    byte[] messageBuffer = new byte[size + oldMessageBuffer.Length];
-
-                    Buffer.BlockCopy(oldMessageBuffer, 0, messageBuffer, 0, oldMessageBuffer.Length);
-                    Buffer.BlockCopy(bytes, 0, messageBuffer, oldMessageBuffer.Length, bytes.Length);
-
-                    int countNewLine = messageBuffer.Count(b => b == 0xA);
-                    if (countNewLine == 0) // find new line
+                    if(mSerialPort.BytesToRead > 255)
                     {
-                        oldMessageBuffer = messageBuffer;
-                        continue;
+                        Loger.Warn($"Serial ling overfloded by {mSerialPort.BytesToRead} bytes. Is cleaning all buffer!");
+                        mSerialPort.ReadExisting();
+                        mSerialPort.ReadLine();
                     }
 
-
-
-                    int passNewLine = 0;
-                    string message = "";
-                    for(int i = 0; i < messageBuffer.Length; i++)
-                    {
-                        byte b = messageBuffer[i];
-                        if(b == 0xA)
-                        {
-                            passNewLine++;
-
-                            if (passNewLine == countNewLine || countNewLine == 0)
-                            {
-                                oldMessageBuffer = new byte[messageBuffer.Length - i - 1];
-                                Buffer.BlockCopy(messageBuffer, i + 1, oldMessageBuffer, 0, messageBuffer.Length - (i + 1));
-                                break;
-                            }
-
-                            if (message.Contains("ba"))
-                            {
-
-                            }
-
-                            Loger.Info($"Message: {message}");
-                            message = "";
-                            continue;
-                        }
-                        
-
-
-                        if ((char)b == 'b')
-                        {
-                            message += "b";
-                            for(int j = 0; j < 1; j++)
-                            {
-                                if(i+1 < messageBuffer.Length)
-                                {
-                                    i++;
-                                    b = messageBuffer[i];
-                                    message += $"'{b}'";
-                                }
-                            }
-                            continue;
-                        }
-                        if ((char)b == 'a')
-                        {
-                            message += "a";
-                            for (int j = 0; j < 2; j++)
-                            {
-                                if (i + 1 < messageBuffer.Length)
-                                {
-                                    i++;
-                                    b = messageBuffer[i];
-                                    message += $"'{b}'";
-                                }
-                            }
-                            continue;
-                        }
-
-                        message += $"'{b}'";
-                    
-                    }
-
-                }catch(Exception e)
+                    string line = mSerialPort.ReadLine();
+                    ResolveLine(line);
+                }
+                catch (Exception e)
                 {
 
-                    Loger.Info($"Read exception, wait 1s and try again");
+                    Loger.Error($"Read exception, wait 1s and try again");
                     Thread.Sleep(1000);
                     OpenPort();
                 }
@@ -161,6 +93,21 @@ namespace FeederDemoCS
             mSerialPort.Close();
         }
 
+        private void ResolveLine(string line)
+        {
+            string[] messages = line.Split(';');
+            foreach(string message in messages)
+            {
+                if (String.IsNullOrEmpty(message) || String.IsNullOrWhiteSpace(message)) continue;
+                string[] keyVal = message.Split(':');
+                ResolveKeyValue(keyVal[0], keyVal[1]);
+            }
+        }
+
+        private void ResolveKeyValue(string key, string value)
+        {
+
+        }
 
     }
 }

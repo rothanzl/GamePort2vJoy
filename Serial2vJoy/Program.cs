@@ -69,6 +69,7 @@ namespace FeederDemoCS
                 return;
             }
 
+            Console.ReadLine();
 
 
             // Get the driver attributes (Vendor ID, Product ID, Version Number)

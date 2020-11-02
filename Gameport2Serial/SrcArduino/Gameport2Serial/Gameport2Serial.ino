@@ -25,6 +25,7 @@ void fetchData(){
   axe2y++;
 }
 
+
 void sendData(){
 
   bool b0 = true;
@@ -32,36 +33,13 @@ void sendData(){
   bool b2 = false;
   bool b3 = false;
 
+  sendDataButton("b0", b0);
+  sendDataAxe("a1", axe1x);
+}
 
-  byte buttonsSend = 0;
-  if(b0) buttonsSend = buttonsSend | 0x1;
-  if(b1) buttonsSend = buttonsSend | (0x1 << 1);
-  if(b2) buttonsSend = buttonsSend | (0x1 << 2);
-  if(b3) buttonsSend = buttonsSend | (0x1 << 3);
-
-
-  byte message[ (4*3)+2+1 ] ;
-  
-  message[0] = 'b';
-  message[1] = buttonsSend ;
-  message[2] = 'a';
-  message[3] = 1;
-  message[4] = axe1x;
-  message[5] = 'a';
-  message[6] = 2;
-  message[7] = axe1y;
-  message[8] = 'a';
-  message[9] = 3;
-  message[10] = axe2x;
-  message[11] = 'a';
-  message[12] = 4;
-  message[13] = axe2y;
-  
-  message[14] = 0xA;
-
-  Serial.write(message, sizeof(message));
-
-
-  
-  
+void sendDataButton(String n, bool v){
+  Serial.println(n + ":" + (v ? '1' : '0') + ';');
+}
+void sendDataAxe(String n, byte v){
+  Serial.println(n + ":" + v + ';');
 }
