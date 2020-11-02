@@ -4,6 +4,11 @@
 #define BUTTON_2_PIN 4
 #define BUTTON_3_PIN 5
 
+#define AXE_0_PIN 0
+#define AXE_1_PIN 1
+#define AXE_2_PIN 2
+#define AXE_3_PIN 3
+
 
 void setup() {
   Serial.begin(9600);
@@ -20,53 +25,34 @@ void setup() {
 }
 
 void loop() {
-  
-  fetchData();
-  sendData();
+  //test();
+  mainLoop();
 }
 
-byte axe1x = 0;
-byte axe1y = 10;
-byte axe2x = 20;
-byte axe2y = 30;
 
-bool b0 = false;
-bool b1 = false;
-bool b2 = false;
-bool b3 = false;
+void test(){
+  
+  delay(500);
+}
 
-void fetchData(){
-  axe1x++;
-  axe1y++;
-  axe2x++;
-  axe2y++;
+void mainLoop(){
+  sendDataAxe("a0", analogRead(AXE_0_PIN));
+  sendDataAxe("a1", analogRead(AXE_1_PIN));
+  sendDataAxe("a2", analogRead(AXE_2_PIN));
+  sendDataAxe("a3", analogRead(AXE_3_PIN));
 
   
   sendDataButton("b0" ,digitalRead(BUTTON_0_PIN) == LOW);
   sendDataButton("b1" ,digitalRead(BUTTON_1_PIN) == LOW);
   sendDataButton("b2" ,digitalRead(BUTTON_2_PIN) == LOW);
   sendDataButton("b3" ,digitalRead(BUTTON_3_PIN) == LOW);
-
   
 }
 
-
-void sendData(){
-
-  //sendDataButton("b0", b0);
-  //sendDataButton("b1", b1);
-  //sendDataButton("b2", b2);
-  //sendDataButton("b3", b3);
-  
-  sendDataAxe("a0", axe1x);
-  sendDataAxe("a1", axe1y);
-  sendDataAxe("a2", axe2x);
-  sendDataAxe("a3", axe2y);
-}
 
 void sendDataButton(String n, bool v){
   Serial.println(n + ":" + (v ? '1' : '0') + ';');
 }
-void sendDataAxe(String n, byte v){
+void sendDataAxe(String n, int v){
   Serial.println(n + ":" + v + ';');
 }

@@ -88,12 +88,13 @@ namespace FeederDemoCS
 
                     sw.Stop();
                     int sleepTime = cycleTime - (int)sw.ElapsedMilliseconds;
-                    if (sleepTime > 0) Thread.Sleep(sleepTime);
+                    Thread.Yield();
+                    /*if (sleepTime > 0) Thread.Sleep(sleepTime);
                     else
                     {
                         Loger.Warn($"Getter loop sleep time {sleepTime}ms");
                         Thread.Yield();
-                    }
+                    }*/
 
                 }
                 catch (Exception e)
@@ -129,12 +130,12 @@ namespace FeederDemoCS
             switch (key[0])
             {
                 case 'a':
-                    if(!Byte.TryParse(value, out byte byteValue))
+                    if(!Int32.TryParse(value, out int intValue))
                     {
-                        Loger.Error($"Cannot convert string {value} to byte.");
+                        Loger.Error($"Cannot convert string {value} to int.");
                         return;
                     }
-                    SerialStates.Axes[index] = byteValue;
+                    SerialStates.Axes[index] = intValue;
                     break;
                 case 'b':
                     bool boolValue = false;
