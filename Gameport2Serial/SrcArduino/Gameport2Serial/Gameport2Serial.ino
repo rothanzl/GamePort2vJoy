@@ -32,27 +32,14 @@ void loop() {
 
 void test(){
   
-  delay(500);
+  //delay(500);
 }
+
 
 void mainLoop(){
-  sendDataAxe("a0", analogRead(AXE_0_PIN));
-  sendDataAxe("a1", analogRead(AXE_1_PIN));
-  sendDataAxe("a2", analogRead(AXE_2_PIN));
-  sendDataAxe("a3", analogRead(AXE_3_PIN));
-
+            
+  Serial.println(String("a0:") + analogRead(AXE_0_PIN) + ";a1:" + analogRead(AXE_1_PIN) + ";a2:" 
+    + analogRead(AXE_2_PIN) + ";a3:" + analogRead(AXE_3_PIN) + ";b0:" + digitalRead(BUTTON_0_PIN) + ";b1:"
+    + digitalRead(BUTTON_1_PIN) + ";b2:" +  + digitalRead(BUTTON_2_PIN) + ";b3:" +  + digitalRead(BUTTON_3_PIN) + ";");
   
-  sendDataButton("b0" ,digitalRead(BUTTON_0_PIN) == LOW);
-  sendDataButton("b1" ,digitalRead(BUTTON_1_PIN) == LOW);
-  sendDataButton("b2" ,digitalRead(BUTTON_2_PIN) == LOW);
-  sendDataButton("b3" ,digitalRead(BUTTON_3_PIN) == LOW);
-  
-}
-
-
-void sendDataButton(String n, bool v){
-  Serial.println(n + ":" + (v ? '1' : '0') + ';');
-}
-void sendDataAxe(String n, int v){
-  Serial.println(n + ":" + v + ';');
 }

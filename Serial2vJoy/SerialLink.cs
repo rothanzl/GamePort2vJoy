@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO.Ports;
-using System.Threading;
 using System.Linq;
 using System.Diagnostics;
+using System.Threading;
 
 namespace FeederDemoCS
 {
@@ -13,8 +13,6 @@ namespace FeederDemoCS
 
         private int mComNum;
         static SerialPort mSerialPort;
-        private bool mContinue;
-        private Thread mReadThread;
 
 
         public SerialLink(int comNum)
@@ -29,10 +27,14 @@ namespace FeederDemoCS
             return SerialPort.GetPortNames();
         }
 
-        public bool OpenPort()
+        public void OpenPortAndRead()
         {
             string portName = new List<string>(PortNames()).FirstOrDefault(n => n.ToLower().Equals("com" + mComNum));
-            if (portName == null) return false;
+            if (portName == null)
+            {
+                Loger.Error("Cannot open port");
+                return;
+            }
 
             if(mSerialPort != null)
             {
@@ -48,18 +50,9 @@ namespace FeederDemoCS
             mSerialPort.WriteTimeout = 250;
 
             mSerialPort.Open();
-            
-
-            if(mReadThread == null) mReadThread = new Thread(Read);
-            if (!mContinue)
-            {
-                mContinue = true;
-                mReadThread.Start();
-            }
 
 
-
-            return true;
+            Read();
         }
 
 
@@ -68,14 +61,12 @@ namespace FeederDemoCS
             int samplesPerSecond = 100;
             int cycleTime = 1000 / samplesPerSecond;
 
-            while (mContinue)
+            while (true)
             {
                 try
                 {
-                    Stopwatch sw = new Stopwatch();
-                    sw.Start();
-
-                    if (mSerialPort.BytesToRead > 255)
+                    
+                    if (mSerialPort.BytesToRead > 500)
                     {
                         Loger.Warn($"Serial ling overfloded by {mSerialPort.BytesToRead} bytes. Is cleaning all buffer!");
                         mSerialPort.ReadExisting();
@@ -84,17 +75,10 @@ namespace FeederDemoCS
 
                     string line = mSerialPort.ReadLine();
                     ResolveLine(line);
-                    Thread.Yield();
 
-                    sw.Stop();
-                    int sleepTime = cycleTime - (int)sw.ElapsedMilliseconds;
-                    Thread.Yield();
-                    /*if (sleepTime > 0) Thread.Sleep(sleepTime);
-                    else
-                    {
-                        Loger.Warn($"Getter loop sleep time {sleepTime}ms");
-                        Thread.Yield();
-                    }*/
+                    Program.UpdateState();
+                    
+                    
 
                 }
                 catch (Exception e)
@@ -102,7 +86,7 @@ namespace FeederDemoCS
 
                     Loger.Error($"Read exception, wait 1s and try again");
                     Thread.Sleep(1000);
-                    OpenPort();
+                    OpenPortAndRead();
                 }
             }
 
@@ -111,13 +95,20 @@ namespace FeederDemoCS
 
         private void ResolveLine(string line)
         {
-            string[] messages = line.Split(';');
-            foreach(string message in messages)
+            try
             {
-                if (String.IsNullOrEmpty(message) || String.IsNullOrWhiteSpace(message)) continue;
-                string[] keyVal = message.Split(':');
-                ResolveKeyValue(keyVal[0], keyVal[1]);
+                string[] messages = line.Split(';');
+                foreach (string message in messages)
+                {
+                    if (String.IsNullOrEmpty(message) || String.IsNullOrWhiteSpace(message)) continue;
+                    string[] keyVal = message.Split(':');
+                    ResolveKeyValue(keyVal[0], keyVal[1]);
+                }
+            }catch(Exception e)
+            {
+                Loger.Error($"Parse error: {line}");
             }
+            
         }
 
         private void ResolveKeyValue(string key, string value)
@@ -138,10 +129,10 @@ namespace FeederDemoCS
                     SerialStates.Axes[index] = intValue;
                     break;
                 case 'b':
-                    bool boolValue = false;
+                    bool boolValue;
 
-                    if (value.Equals("1")) boolValue = true;
-                    else if (value.Equals("0")) boolValue = false;
+                    if (value.Equals("0")) boolValue = true;
+                    else if (value.Equals("1")) boolValue = false;
                     else
                     {
                         Loger.Error($"Cannot convert string {value} to bool.");

@@ -65,11 +65,6 @@ namespace FeederDemoCS
                 return;
             }
 
-            if (!serialLink.OpenPort())
-            {
-                Console.WriteLine("Cannot open port");
-                return;
-            }
 
             // Get the driver attributes (Vendor ID, Product ID, Version Number)
             if (!joystick.vJoyEnabled())
@@ -148,66 +143,47 @@ namespace FeederDemoCS
             
             joystick.GetVJDAxisMax(id, HID_USAGES.HID_USAGE_X, ref SerialStates.AxeMaxVal);
 
-            int samplesPerSecond = 250;
-            int cycleTime = 1000 / samplesPerSecond;
+            serialLink.OpenPortAndRead();
+            
 
-            while (true)
+
+
+        }
+
+
+
+
+        internal static void UpdateState()
+        {
+            iReport.bDevice = (byte)id;
+
+            iReport.AxisX = SerialStates.ConverAxeValue(SerialStates.Axes[0]);
+            iReport.AxisY = SerialStates.ConverAxeValue(SerialStates.Axes[1]);
+
+            iReport.AxisXRot = SerialStates.ConverAxeValue(SerialStates.Axes[2]);
+            iReport.AxisYRot = SerialStates.ConverAxeValue(SerialStates.Axes[3]);
+
+
+            iReport.bHats = SerialStates.HatStates;
+
+            iReport.Buttons = 0;
+            if (!(SerialStates.Buttons[0] && SerialStates.Buttons[1]))
             {
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
-
-                iReport.bDevice = (byte)id;
-
-                iReport.AxisX = SerialStates.ConverAxeValue(SerialStates.Axes[0]);
-                iReport.AxisY = SerialStates.ConverAxeValue(SerialStates.Axes[1]);
-
-                iReport.AxisXRot = SerialStates.ConverAxeValue(SerialStates.Axes[2]);
-                iReport.AxisYRot = SerialStates.ConverAxeValue(SerialStates.Axes[3]);
-
-
-
-                iReport.Buttons = 0;
-                for(int i = 0; i < SerialStates.Buttons.Length; i++)
+                for (int i = 0; i < SerialStates.Buttons.Length; i++)
                 {
-                    if(SerialStates.Buttons[i])
+                    if (SerialStates.Buttons[i])
                         iReport.Buttons = iReport.Buttons | ((uint)0b1 << i);
                 }
-
-                
-                iReport.bHats = 0xFFFFFFFF; // Neutral state
-                // Make 5-position POV Hat spin
-                /*
-			        pov[0] = (byte)(((count / 20) + 0)%4);
-                    pov[1] = (byte)(((count / 20) + 1) % 4);
-                    pov[2] = (byte)(((count / 20) + 2) % 4);
-                    pov[3] = (byte)(((count / 20) + 3) % 4);
-
-			        iReport.bHats		= (uint)(pov[3]<<12) | (uint)(pov[2]<<8) | (uint)(pov[1]<<4) | (uint)pov[0];
-			        if ((count) > 550)
-				       iReport.bHats = 0xFFFFFFFF; // Neutral state
-		        */
-
-                /*** Feed the driver with the position packet - is fails then wait for input then try to re-acquire device ***/
-                if (!joystick.UpdateVJD(id, ref iReport))
-                {
-                    Loger.Error($"Feeding vJoy device number {id} failed - wait 1s");
-                    Thread.Sleep(1000);
-                    joystick.AcquireVJD(id);
-                }
-
-                sw.Stop();
-                int sleepTime = cycleTime - (int)sw.ElapsedMilliseconds;
-                if (sleepTime > 0) Thread.Sleep(sleepTime);
-                else
-                {
-                    Loger.Warn($"Setter loop sleep time {sleepTime}ms");
-                    Thread.Yield();
-                }
-
-            }; // While
+            }
 
 
 
-        } // Main
+            if (!joystick.UpdateVJD(id, ref iReport))
+            {
+                Loger.Error($"Feeding vJoy device number {id} failed - wait 1s");
+                Thread.Sleep(1000);
+                joystick.AcquireVJD(id);
+            }
+        }
     } // class Program
 } // namespace FeederDemoCS
