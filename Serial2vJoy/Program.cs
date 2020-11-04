@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -33,6 +34,9 @@ namespace FeederDemoCS
 {
     class Program
     {
+        static public bool Verbose { get; set; }
+        
+
         // Declaring one joystick (Device id 1) and a position structure. 
         static public vJoy joystick;
         static public vJoy.JoystickState iReport;
@@ -47,7 +51,9 @@ namespace FeederDemoCS
             joystick = new vJoy();
             iReport = new vJoy.JoystickState();
 
-            
+            Verbose = args.Any(l => l.ToLower().Equals("v"));
+            SerialStates.CenterInsensibility = args.Any(l => l.ToLower().Equals("i"));
+
             // Device ID can only be in the range 1-16
             if (args.Length>1 && !String.IsNullOrEmpty(args[0]) && !String.IsNullOrEmpty(args[1]))
             {
@@ -155,13 +161,17 @@ namespace FeederDemoCS
 
         internal static void UpdateState()
         {
+            if (Verbose)
+                Loger.InfoContinue($"Axe1X {SerialStates.Axes[0]} Axe1Y {SerialStates.Axes[1]} Axe2X {SerialStates.Axes[2]} Axe2y {SerialStates.Axes[3]}");
+            
+
             iReport.bDevice = (byte)id;
 
-            iReport.AxisX = SerialStates.ConverAxeValue(SerialStates.Axes[0]);
-            iReport.AxisY = SerialStates.ConverAxeValue(SerialStates.Axes[1]);
+            iReport.AxisX = SerialStates.ConverAxeValue(0);
+            iReport.AxisY = SerialStates.ConverAxeValue(1);
 
-            iReport.AxisXRot = SerialStates.ConverAxeValue(SerialStates.Axes[2]);
-            iReport.AxisYRot = SerialStates.ConverAxeValue(SerialStates.Axes[3]);
+            iReport.AxisXRot = SerialStates.ConverAxeValue(2);
+            iReport.AxisYRot = SerialStates.ConverAxeValue(3);
 
 
             iReport.bHats = SerialStates.HatStates;

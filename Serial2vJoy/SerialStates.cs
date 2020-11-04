@@ -10,6 +10,13 @@ namespace FeederDemoCS
         public static int[] Axes = { 0, 0, 0, 0 };
         public static bool[] Buttons = { false, false, false, false };
 
+        public static bool CenterInsensibility { get; set; }
+        private static readonly int[,] CenterInsensibilityValues =
+            new int[,]
+            {
+                { 462, 562 },
+                { 462, 562 }
+            };
 
 
         public static uint HatStates
@@ -34,13 +41,20 @@ namespace FeederDemoCS
 
         public static long AxeMaxVal = 0;
 
-        public static int ConverAxeValue(int b)
+        public static int ConverAxeValue(int axeIndex)
         {
-            double perCent = ((double)b) / SerialMaxVal;
+            double axeVal = Axes[axeIndex];
+
+            double perCent;
+            if (CenterInsensibility && axeIndex <= 1 && axeVal >= CenterInsensibilityValues[axeIndex, 0] && axeVal <= CenterInsensibilityValues[axeIndex, 1])
+                perCent = 0.5;
+            else
+                perCent = axeVal / SerialMaxVal;
+
             int result = (int)Math.Round(perCent * AxeMaxVal);
             if(result > AxeMaxVal || result < 0)
             {
-                throw new Exception($"ConverAxeValue b={b}. Result out of range");
+                throw new Exception($"ConverAxeValue b={axeVal}. Result out of range");
             }
             return result;
         }
