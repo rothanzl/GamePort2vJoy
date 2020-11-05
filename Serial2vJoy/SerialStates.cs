@@ -14,8 +14,8 @@ namespace FeederDemoCS
         private static readonly int[,] CenterInsensibilityValues =
             new int[,]
             {
-                { 462, 562 },
-                { 462, 562 }
+                { 503, 548 },
+                { 505, 528 }
             };
 
 
